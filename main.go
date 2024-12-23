@@ -6,7 +6,6 @@ import (
 )
 
 func main() {
-	println(box("aaa\naa"))
 }
 
 type License struct {
