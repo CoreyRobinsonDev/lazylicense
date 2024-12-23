@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	println(box("this is some text lol"))
+	println(box("this is some text lol\nmore text"))
 }
 
 func box(text string) string {
