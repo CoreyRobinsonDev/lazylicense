@@ -8,7 +8,8 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-const domain = "https://choosealicense.com"
+const DOMAIN = "https://choosealicense.com"
+const MAX_WIDTH = 45
 
 func main() {
 	licenses := GetLicenses()
@@ -25,18 +26,27 @@ func main() {
 	InitInput()
 	moveNum := 0
 	selection := HighlightSelection(moveNum, names)
-	fmt.Println(strings.Join(selection, "\n"))
+	container, containerHeight := Container(LicenseDetails(licenses[moveNum]), strings.Join(selection, "\n"))
+	fmt.Println(container)
+	MoveCursor("up", containerHeight)
+	MoveCursor("left", 99)
 
 	for {
-		MoveCursor("up", len(licenses))
-		MoveCursor("left", 99)
 		moveNum += DetectMove()
+		for range containerHeight {
+			fmt.Println(strings.Repeat(" ", MAX_WIDTH + 5))
+		}
+		MoveCursor("up", containerHeight)
 		if moveNum < 0 {
 			moveNum = len(licenses) - 1
 		}
 		idx := moveNum % len(licenses)
 		selection := HighlightSelection(idx, names)
-		fmt.Println(strings.Join(selection, "\n"))
+		container, containerHeight := Container(LicenseDetails(licenses[idx]), strings.Join(selection, "\n"))
+		fmt.Println(container)
+		MoveCursor("up", containerHeight)
+		MoveCursor("left", 99)
+
 	}
 }
 
@@ -52,22 +62,23 @@ type License struct {
 }
 
 
-func PrintLicenseDetails(license License) {
-	 detailsString := "Permissions\n\u2b24 " + strings.Join(license.Permissions, " \n\u2b24 ") + "\n\nConditions\n\u2b24 " + strings.Join(license.Conditions, " \n\u2b24 ") + "\n\nLimitations\n\u2b24 " + strings.Join(license.Limitations, " \n\u2b24 ")
-	fmt.Println(Box(detailsString))
+func LicenseDetails(license License) string {
+	detailsString := "Permissions\n\u2b24 " + strings.Join(license.Permissions, " \n\u2b24 ") + "\n\nConditions\n\u2b24 " + strings.Join(license.Conditions, " \n\u2b24 ") + "\n\nLimitations\n\u2b24 " + strings.Join(license.Limitations, " \n\u2b24 ")
+	// TODO: calculate the width
+	return Box(detailsString, MAX_WIDTH)
 }
 
 
 func GetLicenses() []License {
-	res := Unwrap(http.Get(domain + "/licenses"))
+	res := Unwrap(http.Get(DOMAIN + "/licenses"))
 	defer res.Body.Close()
 	doc := Unwrap(goquery.NewDocumentFromReader(res.Body))
 	licenses := make([]License, 0)
 
 	doc.Find(".license-overview-name").Each(func(i int, s *goquery.Selection) {
 		route, exists := s.Find("a").Attr("href")
-		if !exists { handleErr("missing link on " + domain) }
-		page := Unwrap(http.Get(domain + route))
+		if !exists { handleErr("missing link on " + DOMAIN) }
+		page := Unwrap(http.Get(DOMAIN + route))
 		defer page.Body.Close()
 		pageDoc := Unwrap(goquery.NewDocumentFromReader(page.Body))
 		license := new(License)

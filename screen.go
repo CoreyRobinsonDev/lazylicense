@@ -52,11 +52,14 @@ func HighlightSelection(position int, options []string) []string {
 	return newOptions
 }
 
-func Container(left, right string) string {
+// Returns the container and max height
+func Container(left, right string) (string, int) {
+	leftHeight := strings.Count(left, "\n")
+	rightHeight := strings.Count(right, "\n")
 	if len(left) == 0 {
-		return right
+		return right, rightHeight
 	} else if len(right) == 0 {
-		return left
+		return left, leftHeight
 	}
 	leftArr := strings.Split(left, "\n")
 	rightArr := strings.Split(right, "\n")
@@ -67,9 +70,9 @@ func Container(left, right string) string {
 		for i, el := range rightArr {
 			if i >= len(leftArr) {
 				pad := strings.Repeat(" ", leftWidth)
-				out = append(out, pad + el)
+				out = append(out, pad + " " + el)
 			} else {
-				out = append(out, leftArr[i] + el)
+				out = append(out, leftArr[i] + " " + el)
 			} 
 		}
 	} else {
@@ -77,16 +80,15 @@ func Container(left, right string) string {
 			if i >= len(rightArr) {
 				out = append(out, el)
 			} else {
-				out = append(out, el + rightArr[i])
+				out = append(out, el + " " + rightArr[i])
 			} 
 		}
 	}
 
-	return strings.Join(out, "\n")
+	return strings.Join(out, "\n"), max(leftHeight, rightHeight) + 1
 }
 
-// Returns the final box, width and height
-func Box(text string) string  {
+func Box(text string, width ...int) string  {
 	tl := "╭"
 	tr := "╮"
 	bl := "╰"
@@ -94,26 +96,29 @@ func Box(text string) string  {
 	h := "─"
 	v := "│"
 	pad := " "
-	h_line := h
-	text_seg := strings.Split(text, "\n")
-	max_len := utf8.RuneCountInString(text_seg[0])
-	paddings := make([]string, 0, len(text_seg))
+	hLine := h
+	textSeg := strings.Split(text, "\n")
+	maxWidth := utf8.RuneCountInString(textSeg[0])
+	if len(width) >= 1 {
+		maxWidth = width[0]
+	}
+	paddings := make([]string, 0, len(textSeg))
 	var out string
 
-	for _, seg := range text_seg {
-		if max_len < utf8.RuneCountInString(seg) {
-			max_len = utf8.RuneCountInString(seg)
+	for _, seg := range textSeg {
+		if maxWidth < utf8.RuneCountInString(seg) {
+			maxWidth = utf8.RuneCountInString(seg)
 		}
 	}
 
-	for range max_len {
-		h_line += h
+	for range maxWidth {
+		hLine += h
 	}
 
-	for _, seg := range text_seg {
+	for _, seg := range textSeg {
 		r_pad := pad
 		var diff int
-		if d := max_len - utf8.RuneCountInString(seg); d < 0 {
+		if d := maxWidth - utf8.RuneCountInString(seg); d < 0 {
 			diff = 0
 		} else { diff = d }
 
@@ -124,23 +129,22 @@ func Box(text string) string  {
 		paddings = append(paddings, r_pad)
 	}
 
-	h_line += h
+	hLine += h
 
 	out = fmt.Sprintf("%s%s%s\n",
-		tl, h_line, tr,
+		tl, hLine, tr,
 	)
 
-	for i, seg := range text_seg {
+	for i, seg := range textSeg {
 		out += fmt.Sprintf("%s%s%s%s%s\n",
 			v, pad, seg, paddings[i], v,
 		)
 	}
 
 	out += fmt.Sprintf("%s%s%s",
-		bl, h_line, br,
+		bl, hLine, br,
 	)
 
-	
 	return out 
 }
 
