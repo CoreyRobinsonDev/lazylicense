@@ -9,7 +9,8 @@ import (
 )
 
 const DOMAIN = "https://choosealicense.com"
-const MAX_WIDTH = 45
+const MAX_BOX_WIDTH = 45
+const MAX_TERM_WIDTH = 102
 
 func main() {
 	licenses := GetLicenses()
@@ -26,15 +27,20 @@ func main() {
 	InitInput()
 	moveNum := 0
 	selection := HighlightSelection(moveNum, names)
-	container, containerHeight := Container(LicenseDetails(licenses[moveNum]), strings.Join(selection, "\n"))
-	fmt.Println(container)
-	MoveCursor("up", containerHeight)
+	container, containerHeight := Container(LicenseDetails(licenses[0]), strings.Join(selection, "\n"))
+	if TermWidth() <= MAX_TERM_WIDTH {
+		fmt.Println(strings.Join(selection, "\n"))	
+		MoveCursor("up", len(selection))
+	} else {
+		fmt.Println(container)
+		MoveCursor("up", containerHeight)
+	}
 	MoveCursor("left", 99)
 
 	for {
 		moveNum += DetectMove()
 		for range containerHeight {
-			fmt.Println(strings.Repeat(" ", MAX_WIDTH + 5))
+			fmt.Println(strings.Repeat(" ", int(TermWidth())))
 		}
 		MoveCursor("up", containerHeight)
 		if moveNum < 0 {
@@ -42,13 +48,19 @@ func main() {
 		}
 		idx := moveNum % len(licenses)
 		selection := HighlightSelection(idx, names)
-		container, containerHeight := Container(LicenseDetails(licenses[idx]), strings.Join(selection, "\n"))
-		fmt.Println(container)
-		MoveCursor("up", containerHeight)
+		if TermWidth() <= MAX_TERM_WIDTH {
+			fmt.Println(strings.Join(selection, "\n"))
+			MoveCursor("up", len(selection))
+		} else {
+			container, containerHeight := Container(LicenseDetails(licenses[idx]), strings.Join(selection, "\n"))
+			fmt.Println(container)
+			MoveCursor("up", containerHeight)
+		}
 		MoveCursor("left", 99)
 
 	}
 }
+
 
 
 type License struct {
@@ -65,7 +77,7 @@ type License struct {
 func LicenseDetails(license License) string {
 	detailsString := "Permissions\n\u2b24 " + strings.Join(license.Permissions, " \n\u2b24 ") + "\n\nConditions\n\u2b24 " + strings.Join(license.Conditions, " \n\u2b24 ") + "\n\nLimitations\n\u2b24 " + strings.Join(license.Limitations, " \n\u2b24 ")
 	// TODO: calculate the width
-	return Box(detailsString, MAX_WIDTH)
+	return Box(detailsString, MAX_BOX_WIDTH)
 }
 
 
