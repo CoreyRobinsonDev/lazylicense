@@ -50,7 +50,7 @@ func MoveCursor(dir string, amount int) {
 }
 
 // -1 == up, 1 == down
-func DetectMove() int {
+func CalcInput() int {
 	b := make([]byte, 3)
 	os.Stdin.Read(b)
 	if string(b[0]) == "j" || b[2] == 66 {

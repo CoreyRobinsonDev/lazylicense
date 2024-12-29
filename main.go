@@ -12,6 +12,8 @@ const DOMAIN = "https://choosealicense.com"
 const MAX_BOX_WIDTH = 45
 const MAX_TERM_WIDTH = 102
 
+
+
 func main() {
 	licenses := GetLicenses()
 	names := make([]string, 0, len(licenses))
@@ -38,7 +40,9 @@ func main() {
 	MoveCursor("left", 99)
 
 	for {
-		moveNum += DetectMove()
+		// halts here
+		moveNum += CalcInput()
+		// clear last container from terminal
 		for range containerHeight {
 			fmt.Println(strings.Repeat(" ", int(TermWidth())))
 		}
@@ -57,7 +61,6 @@ func main() {
 			MoveCursor("up", containerHeight)
 		}
 		MoveCursor("left", 99)
-
 	}
 }
 
