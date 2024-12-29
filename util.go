@@ -7,6 +7,8 @@ import (
 )
 
 func handleErr(errMsg string) {
+	// show cursor
+	fmt.Fprint(os.Stdout, "\x1b[?25h")
 	fmt.Fprintf(os.Stderr, "%s %s\n", Bold(Red("error:")), errMsg)
 	os.Exit(1)
 }

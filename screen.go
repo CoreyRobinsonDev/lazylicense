@@ -35,6 +35,8 @@ func InitInput() {
 	exec.Command("stty", "-F", "/dev/tty", "cbreak", "min", "1").Run()
 	// do not display entered characters on the screen
 	exec.Command("stty", "-F", "/dev/tty", "-echo").Run()
+	// hide cursor
+	fmt.Fprintf(os.Stdout, "\x1b[?25l")
 }
 
 func MoveCursor(dir string, amount int) {
@@ -50,6 +52,7 @@ func MoveCursor(dir string, amount int) {
 }
 
 // -1 == up, 1 == down
+// greater than 1 is a select
 func CalcInput() int {
 	b := make([]byte, 3)
 	os.Stdin.Read(b)
@@ -57,8 +60,9 @@ func CalcInput() int {
 		return 1
 	} else if string(b[0]) == "k" || b[2] == 65 {
 		return -1
-	}  
-
+	} else if b[0] == 9 || b[0] == 10 || b[0] == 32 {
+		return 2
+	}
 	return 0
 }
 

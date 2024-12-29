@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -11,7 +13,6 @@ import (
 const DOMAIN = "https://choosealicense.com"
 const MAX_BOX_WIDTH = 45
 const MAX_TERM_WIDTH = 102
-
 
 
 func main() {
@@ -41,7 +42,19 @@ func main() {
 
 	for {
 		// halts here
-		moveNum += CalcInput()
+		result := CalcInput()
+		//
+		if result > 1 {
+			for range containerHeight {
+				fmt.Println(strings.Repeat(" ", int(TermWidth())))
+			}
+			MoveCursor("up", containerHeight)
+			idx := moveNum % len(licenses)
+			fmt.Println(Blue(licenses[idx].Name))
+			AddLicense(licenses[idx])
+			break
+		}
+		moveNum += result
 		// clear last container from terminal
 		for range containerHeight {
 			fmt.Println(strings.Repeat(" ", int(TermWidth())))
@@ -62,9 +75,65 @@ func main() {
 		}
 		MoveCursor("left", 99)
 	}
+	// show cursor
+	fmt.Fprint(os.Stdout, "\x1b[?25h")
 }
 
 
+func AddLicense(license License) {
+	dat := []byte(license.Content)
+	os.WriteFile("LICENSE", dat, 0644)
+	dat, err := os.ReadFile("README.md")
+	if err != nil {
+		pwdCmd := exec.Command("pwd")
+		dirBytes := Unwrap(pwdCmd.Output())
+		fmt.Printf("%s could not be found in '%s'\n", Bold("README.md"),strings.Trim(string(dirBytes), " \t\n"))
+		fmt.Println("Create README.md?")
+
+		moveNum := 0
+		options := []string{"Yes", "No"}
+		selection := HighlightSelection(moveNum, options)
+		fmt.Println(strings.Join(selection, "\n"))
+		MoveCursor("up", len(options))
+		MoveCursor("left", 99)
+		for {
+			result := CalcInput()
+			if result > 1 {
+				idx := moveNum % len(options)
+				fmt.Print(strings.Repeat(" ", int(TermWidth())))
+				MoveCursor("left", 99)
+				fmt.Println(options[idx])
+				if options[idx] == "Yes" {
+					dir := strings.Split(string(dirBytes), "/")
+					programName := dir[len(dir)-1]
+					dat := []byte(fmt.Sprintf(
+						"# %s\n\n## License\n[%s](./LICENSE)",
+						programName,
+						license.Name,
+					))
+					os.WriteFile("README.md", dat, 0644)
+				}
+				break
+			}
+			moveNum += result
+			if moveNum < 0 {
+				moveNum = len(options) - 1
+			}
+			idx := moveNum % len(options)
+			selection := HighlightSelection(idx, options)
+			fmt.Println(strings.Join(selection, "\n"))
+			MoveCursor("up", len(selection))
+			MoveCursor("left", 99)
+		}
+	} else {
+		dat := []byte(fmt.Sprintf(
+			"%s\n\n## License\n[%s](./LICENSE)",
+			dat,
+			license.Name,
+		))
+		os.WriteFile("README.md", dat, 0644)
+	}
+}
 
 type License struct {
 	Name string
