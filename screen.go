@@ -66,7 +66,7 @@ func CalcInput() int {
 	return 0
 }
 
-func HighlightSelection(position int, options []string) []string {
+func HighlightOptions(position int, options []string) []string {
 	newOptions := make([]string, len(options))
 	if position < 0 || position >= len(newOptions) { return newOptions }
 	
@@ -76,6 +76,35 @@ func HighlightSelection(position int, options []string) []string {
 	newOptions[position] = Blue(newOptions[position])
 
 	return newOptions
+}
+
+func List(options []string, onSelect func(selection any)) {
+	moveNum := 0
+	highlightOptions := HighlightOptions(moveNum, options)
+	fmt.Println(strings.Join(highlightOptions, "\n"))
+	MoveCursor("up", len(options))
+	MoveCursor("left", 99)
+	for {
+		result := CalcInput()
+		if result > 1 {
+			idx := moveNum % len(options)
+			MoveCursor("up", idx-2)
+			fmt.Print(strings.Repeat(" ", int(TermWidth())))
+			MoveCursor("left", 99)
+			fmt.Println(options[idx])
+			onSelect(options[idx])
+			break
+		}
+		moveNum += result
+		if moveNum < 0 {
+			moveNum = len(options) - 1
+		}
+		idx := moveNum % len(options)
+		selection := HighlightOptions(idx, options)
+		fmt.Println(strings.Join(selection, "\n"))
+		MoveCursor("up", len(selection))
+		MoveCursor("left", 99)
+	}
 }
 
 // Returns the container and max height

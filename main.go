@@ -29,7 +29,7 @@ func main() {
 
 	InitInput()
 	moveNum := 0
-	selection := HighlightSelection(moveNum, names)
+	selection := HighlightOptions(moveNum, names)
 	container, containerHeight := Container(LicenseDetails(licenses[0]), strings.Join(selection, "\n"))
 	if TermWidth() <= MAX_TERM_WIDTH {
 		fmt.Println(strings.Join(selection, "\n"))	
@@ -64,7 +64,7 @@ func main() {
 			moveNum = len(licenses) - 1
 		}
 		idx := moveNum % len(licenses)
-		selection := HighlightSelection(idx, names)
+		selection := HighlightOptions(idx, names)
 		if TermWidth() <= MAX_TERM_WIDTH {
 			fmt.Println(strings.Join(selection, "\n"))
 			MoveCursor("up", len(selection))
@@ -81,6 +81,9 @@ func main() {
 
 
 func AddLicense(license License) {
+	// yearPlaceholders := []string{
+	// 	"<year>",
+	// }
 	dat := []byte(license.Content)
 	os.WriteFile("LICENSE", dat, 0644)
 	dat, err := os.ReadFile("README.md")
@@ -90,41 +93,18 @@ func AddLicense(license License) {
 		fmt.Printf("%s could not be found in '%s'\n", Bold("README.md"),strings.Trim(string(dirBytes), " \t\n"))
 		fmt.Println("Create README.md?")
 
-		moveNum := 0
-		options := []string{"Yes", "No"}
-		selection := HighlightSelection(moveNum, options)
-		fmt.Println(strings.Join(selection, "\n"))
-		MoveCursor("up", len(options))
-		MoveCursor("left", 99)
-		for {
-			result := CalcInput()
-			if result > 1 {
-				idx := moveNum % len(options)
-				fmt.Print(strings.Repeat(" ", int(TermWidth())))
-				MoveCursor("left", 99)
-				fmt.Println(options[idx])
-				if options[idx] == "Yes" {
-					dir := strings.Split(string(dirBytes), "/")
-					programName := dir[len(dir)-1]
-					dat := []byte(fmt.Sprintf(
-						"# %s\n\n## License\n[%s](./LICENSE)",
-						programName,
-						license.Name,
-					))
-					os.WriteFile("README.md", dat, 0644)
-				}
-				break
+		List([]string{"Yes", "No"}, func(selection any) {
+			if selection == "Yes" {
+				dir := strings.Split(string(dirBytes), "/")
+				programName := dir[len(dir)-1]
+				dat := []byte(fmt.Sprintf(
+					"# %s\n\n## License\n[%s](./LICENSE)",
+					programName,
+					license.Name,
+				))
+				os.WriteFile("README.md", dat, 0644)
 			}
-			moveNum += result
-			if moveNum < 0 {
-				moveNum = len(options) - 1
-			}
-			idx := moveNum % len(options)
-			selection := HighlightSelection(idx, options)
-			fmt.Println(strings.Join(selection, "\n"))
-			MoveCursor("up", len(selection))
-			MoveCursor("left", 99)
-		}
+		})
 	} else {
 		dat := []byte(fmt.Sprintf(
 			"%s\n\n## License\n[%s](./LICENSE)",
