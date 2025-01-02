@@ -9,12 +9,6 @@ import (
 	"unicode/utf8"
 )
 
-type winsize struct {
-    Row    uint16
-    Col    uint16
-    Xpixel uint16
-    Ypixel uint16
-}
 
 func TermWidth() uint {
 	out := Unwrap(exec.Command("stty", "-F", "/dev/tty", "size").Output())
@@ -50,9 +44,14 @@ func MoveCursor(dir string, amount int) {
 func CalcInput() int {
 	b := make([]byte, 3)
 	os.Stdin.Read(b)
-	if string(b[0]) == "j" || b[2] == 66 {
+	if b[0] == 113 || b[0] == 81 {
+		// show cursor
+		fmt.Fprint(os.Stdout, "\x1b[?25h")
+		os.Exit(0)
+	}
+	if string(b[0]) == "j" || string(b[0]) == "J" || b[2] == 66 {
 		return 1
-	} else if string(b[0]) == "k" || b[2] == 65 {
+	} else if string(b[0]) == "k" || string(b[0]) == "K" || b[2] == 65 {
 		return -1
 	} else if b[0] == 9 || b[0] == 10 || b[0] == 32 {
 		return 2

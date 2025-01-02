@@ -29,6 +29,8 @@ func main() {
 		names = append(names, name)
 	} 
 
+	fmt.Printf("Move%s Quit%s\n", Purple("<jk|\u2B06\u2B07>"), Purple("<q>"))
+
 	InitInput()
 	moveNum := 0
 	selection := HighlightOptions(moveNum, names)
