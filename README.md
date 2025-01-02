@@ -14,7 +14,7 @@ Download pre-built binary for your system here [Releases](https://github.com/Cor
 ```bash
 git clone https://github.com/CoreyRobinsonDev/lazylicense.git
 ```
-- Create **gopher** binary
+- Create **lazylicense** binary
 ```bash
 cd lazylicense
 go build
