@@ -1,5 +1,6 @@
 # lazylicense
 [![Release](https://github.com/CoreyRobinsonDev/lazylicense/actions/workflows/release.yml/badge.svg)](https://github.com/CoreyRobinsonDev/lazylicense/actions/workflows/release.yml)
+<br>
 Grab a license from the internet and get back to coding.
 <br>
 [Usage](#Usage) <span>&nbsp;•&nbsp;</span> [Install](#Install)
