@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
-	"syscall"
 	"unicode/utf8"
-	"unsafe"
 )
 
 type winsize struct {
@@ -18,16 +17,11 @@ type winsize struct {
 }
 
 func TermWidth() uint {
-    ws := &winsize{}
-    retCode, _, errno := syscall.Syscall(syscall.SYS_IOCTL,
-        uintptr(syscall.Stdin),
-        uintptr(syscall.TIOCGWINSZ),
-        uintptr(unsafe.Pointer(ws)))
+	out := Unwrap(exec.Command("stty", "-F", "/dev/tty", "size").Output())
+	col := strings.Split(string(out), " ")[1]
+	col = col[:len(col)-1]
 
-    if int(retCode) == -1 {
-        panic(errno)
-    }
-    return uint(ws.Col)
+	return uint(Unwrap(strconv.Atoi(col)))
 }
 
 func InitInput() {

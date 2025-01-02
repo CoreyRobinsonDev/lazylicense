@@ -17,6 +17,7 @@ const MAX_TERM_WIDTH = 102
 
 
 func main() {
+	width := TermWidth()
 	licenses := GetLicenses()
 	names := make([]string, 0, len(licenses))
 
@@ -32,7 +33,7 @@ func main() {
 	moveNum := 0
 	selection := HighlightOptions(moveNum, names)
 	container, containerHeight := Container(LicenseDetails(licenses[0]), strings.Join(selection, "\n"))
-	if TermWidth() <= MAX_TERM_WIDTH {
+	if width <= MAX_TERM_WIDTH {
 		fmt.Println(strings.Join(selection, "\n"))	
 		MoveCursor("up", len(selection))
 	} else {
@@ -47,7 +48,7 @@ func main() {
 		//
 		if result > 1 {
 			for range containerHeight {
-				fmt.Println(strings.Repeat(" ", int(TermWidth())))
+				fmt.Println(strings.Repeat(" ", int(width)))
 			}
 			MoveCursor("up", containerHeight)
 			idx := moveNum % len(licenses)
@@ -58,7 +59,7 @@ func main() {
 		moveNum += result
 		// clear last container from terminal
 		for range containerHeight {
-			fmt.Println(strings.Repeat(" ", int(TermWidth())))
+			fmt.Println(strings.Repeat(" ", int(width)))
 		}
 		MoveCursor("up", containerHeight)
 		if moveNum < 0 {
@@ -66,7 +67,7 @@ func main() {
 		}
 		idx := moveNum % len(licenses)
 		selection := HighlightOptions(idx, names)
-		if TermWidth() <= MAX_TERM_WIDTH {
+		if width <= MAX_TERM_WIDTH {
 			fmt.Println(strings.Join(selection, "\n"))
 			MoveCursor("up", len(selection))
 		} else {
