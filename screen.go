@@ -90,7 +90,7 @@ func List(options []string, onSelect func(selection any)) {
 			idx := moveNum % len(options)
 			MoveCursor("up", idx-2)
 			fmt.Print(strings.Repeat(" ", int(TermWidth())))
-			MoveCursor("left", 99)
+			MoveCursor("left", 999)
 			fmt.Println(options[idx])
 			onSelect(options[idx])
 			break

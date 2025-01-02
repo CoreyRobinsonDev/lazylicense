@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -81,16 +82,96 @@ func main() {
 
 
 func AddLicense(license License) {
-	// yearPlaceholders := []string{
-	// 	"<year>",
-	// }
+	yearPlaceholders := []string{
+		"<year>",
+		"[year]",
+		"[yyyy]",
+	}
+	namePlaceholders := []string{
+		"<name of author>",
+		"[name of copyright owner]",
+		"[fullname]",
+	}
+	yearPlaceholder := ""
+	namePlaceholder := ""
+
+	for _, placeholder := range yearPlaceholders {
+		if strings.Contains(license.Content, placeholder) {
+			yearPlaceholder = placeholder
+		}
+	}
+
+
+	for _, placeholder := range namePlaceholders {
+		if strings.Contains(license.Content, placeholder) {
+			namePlaceholder = placeholder
+		}
+	}
+
+	if len(yearPlaceholder) != 0 {
+		year := ""
+		fmt.Printf("Enter year: \r")
+		getYear:
+		for {
+			b := make([]byte, 1)
+			os.Stdin.Read(b)
+			switch b[0] {
+			// 10 == \n
+			case 10: 
+				// clear year on invalid number
+				if _, err := strconv.Atoi(year); err != nil {
+					year = ""
+					fmt.Printf("                                                          \r")
+					fmt.Printf("Enter year: %s\r", year)
+					continue
+				}
+				break getYear
+			// 127 == backspace
+			case 127:
+				if len(year) == 0 {continue}
+				fmt.Printf("                                                          \r")
+				year = year[:len(year)-1]
+			default:
+				year += string(b)
+			}
+			fmt.Printf("Enter year: %s\r", year)
+		}
+		fmt.Println()
+		license.Content = strings.ReplaceAll(license.Content, yearPlaceholder, year)
+	}
+
+
+	if len(namePlaceholder) != 0 {
+		name := ""
+		fmt.Printf("Enter name: \r")
+		getName:
+		for {
+			b := make([]byte, 1)
+			os.Stdin.Read(b)
+			switch b[0] {
+			// 10 == \n
+			case 10: break getName
+			// 127 == backspace
+			case 127:
+				if len(name) == 0 {continue}
+				fmt.Printf("                                                          \r")
+				name = name[:len(name)-1]
+			default:
+				name += string(b)
+			}
+			fmt.Printf("Enter name: %s\r", name)
+		}
+		fmt.Println()
+		license.Content = strings.ReplaceAll(license.Content, namePlaceholder, name)
+	}
+
 	dat := []byte(license.Content)
 	os.WriteFile("LICENSE", dat, 0644)
 	dat, err := os.ReadFile("README.md")
 	if err != nil {
 		pwdCmd := exec.Command("pwd")
 		dirBytes := Unwrap(pwdCmd.Output())
-		fmt.Printf("%s could not be found in '%s'\n", Bold("README.md"),strings.Trim(string(dirBytes), " \t\n"))
+		fmt.Printf("No %s file was found in '%s'\n", Bold("README.md"),strings.Trim(string(dirBytes), " \t\n"))
 		fmt.Println("Create README.md?")
 
 		List([]string{"Yes", "No"}, func(selection any) {
