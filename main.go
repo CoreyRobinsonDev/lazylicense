@@ -15,7 +15,6 @@ const DOMAIN = "https://choosealicense.com"
 const MAX_BOX_WIDTH = 45
 const MAX_TERM_WIDTH = 102
 
-
 func main() {
 	width := TermWidth()
 	licenses := GetLicenses()
@@ -27,7 +26,7 @@ func main() {
 			name += " (" + license.AbbrName + ")"
 		}
 		names = append(names, name)
-	} 
+	}
 
 	fmt.Printf("Move%s Quit%s\n", Purple("<jk|\u2B06\u2B07>"), Purple("<q>"))
 
@@ -36,7 +35,7 @@ func main() {
 	selection := HighlightOptions(moveNum, names)
 	container, containerHeight := Container(LicenseDetails(licenses[0]), strings.Join(selection, "\n"))
 	if width <= MAX_TERM_WIDTH {
-		fmt.Println(strings.Join(selection, "\n"))	
+		fmt.Println(strings.Join(selection, "\n"))
 		MoveCursor("up", len(selection))
 	} else {
 		fmt.Println(container)
@@ -83,44 +82,29 @@ func main() {
 	fmt.Fprint(os.Stdout, "\x1b[?25h")
 }
 
-
-func AddLicense(license License) {
+// modifies object
+func ReplaceYear(license *License) {
 	yearPlaceholders := []string{
 		"<year>",
 		"[year]",
 		"[yyyy]",
 	}
-	namePlaceholders := []string{
-		"<name of author>",
-		"[name of copyright owner]",
-		"[fullname]",
-	}
 	yearPlaceholder := ""
-	namePlaceholder := ""
-
 	for _, placeholder := range yearPlaceholders {
 		if strings.Contains(license.Content, placeholder) {
 			yearPlaceholder = placeholder
 		}
 	}
-
-
-	for _, placeholder := range namePlaceholders {
-		if strings.Contains(license.Content, placeholder) {
-			namePlaceholder = placeholder
-		}
-	}
-
 	if len(yearPlaceholder) != 0 {
 		year := ""
 		fmt.Printf("Enter year: \r")
-		getYear:
+	getYear:
 		for {
 			b := make([]byte, 1)
 			os.Stdin.Read(b)
 			switch b[0] {
 			// 10 == \n
-			case 10: 
+			case 10:
 				// clear year on invalid number
 				if _, err := strconv.Atoi(year); err != nil {
 					year = ""
@@ -131,7 +115,9 @@ func AddLicense(license License) {
 				break getYear
 			// 127 == backspace
 			case 127:
-				if len(year) == 0 {continue}
+				if len(year) == 0 {
+					continue
+				}
 				fmt.Printf("                                                          \r")
 				year = year[:len(year)-1]
 			default:
@@ -142,21 +128,39 @@ func AddLicense(license License) {
 		fmt.Println()
 		license.Content = strings.ReplaceAll(license.Content, yearPlaceholder, year)
 	}
+}
 
+// modifies object
+func ReplaceName(license *License) {
+	namePlaceholders := []string{
+		"<name of author>",
+		"[name of copyright owner]",
+		"[fullname]",
+	}
+	namePlaceholder := ""
+
+	for _, placeholder := range namePlaceholders {
+		if strings.Contains(license.Content, placeholder) {
+			namePlaceholder = placeholder
+		}
+	}
 
 	if len(namePlaceholder) != 0 {
 		name := ""
 		fmt.Printf("Enter name: \r")
-		getName:
+	getName:
 		for {
 			b := make([]byte, 1)
 			os.Stdin.Read(b)
 			switch b[0] {
 			// 10 == \n
-			case 10: break getName
+			case 10:
+				break getName
 			// 127 == backspace
 			case 127:
-				if len(name) == 0 {continue}
+				if len(name) == 0 {
+					continue
+				}
 				fmt.Printf("                                                          \r")
 				name = name[:len(name)-1]
 			default:
@@ -167,6 +171,11 @@ func AddLicense(license License) {
 		fmt.Println()
 		license.Content = strings.ReplaceAll(license.Content, namePlaceholder, name)
 	}
+}
+
+func AddLicense(license License) {
+	ReplaceYear(&license)
+	ReplaceName(&license)
 
 	dat := []byte(license.Content)
 	os.WriteFile("LICENSE", dat, 0644)
@@ -174,7 +183,7 @@ func AddLicense(license License) {
 	if err != nil {
 		pwdCmd := exec.Command("pwd")
 		dirBytes := Unwrap(pwdCmd.Output())
-		fmt.Printf("No %s file was found in '%s'\n", Bold("README.md"),strings.Trim(string(dirBytes), " \t\n"))
+		fmt.Printf("No %s file was found in '%s'\n", Bold("README.md"), strings.Trim(string(dirBytes), " \t\n"))
 		fmt.Println("Create README.md?")
 
 		List([]string{"Yes", "No"}, func(selection any) {
@@ -200,22 +209,20 @@ func AddLicense(license License) {
 }
 
 type License struct {
-	Name string
-	AbbrName string
+	Name        string
+	AbbrName    string
 	Description string
-	Content string
+	Content     string
 	Permissions []string
-	Conditions []string
+	Conditions  []string
 	Limitations []string
 }
-
 
 func LicenseDetails(license License) string {
 	detailsString := "Permissions\n\u2b24 " + strings.Join(license.Permissions, " \n\u2b24 ") + "\n\nConditions\n\u2b24 " + strings.Join(license.Conditions, " \n\u2b24 ") + "\n\nLimitations\n\u2b24 " + strings.Join(license.Limitations, " \n\u2b24 ")
 	// TODO: calculate the width
 	return Box(detailsString, MAX_BOX_WIDTH)
 }
-
 
 func GetLicenses() []License {
 	res := Unwrap(http.Get(DOMAIN + "/licenses"))
@@ -225,7 +232,9 @@ func GetLicenses() []License {
 
 	doc.Find(".license-overview-name").Each(func(i int, s *goquery.Selection) {
 		route, exists := s.Find("a").Attr("href")
-		if !exists { handleErr("missing link on " + DOMAIN) }
+		if !exists {
+			handleErr("missing link on " + DOMAIN)
+		}
 		page := Unwrap(http.Get(DOMAIN + route))
 		defer page.Body.Close()
 		pageDoc := Unwrap(goquery.NewDocumentFromReader(page.Body))
@@ -236,7 +245,9 @@ func GetLicenses() []License {
 		var childOffset int
 		if license.AbbrName == "" {
 			childOffset = 1
-		} else { childOffset = 2 }
+		} else {
+			childOffset = 2
+		}
 		license.Description = strings.Trim(pageDoc.Find(fmt.Sprintf("div.license-body > p:nth-child(%d)", childOffset)).Text(), " \t\n")
 		pageDoc.Find("ul.license-permissions > li").Each(func(i int, s *goquery.Selection) {
 			license.Permissions = append(license.Permissions, strings.Trim(s.Text(), " \t\n"))
@@ -254,4 +265,3 @@ func GetLicenses() []License {
 
 	return licenses
 }
-

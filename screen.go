@@ -9,7 +9,6 @@ import (
 	"unicode/utf8"
 )
 
-
 func TermWidth() uint {
 	out := Unwrap(exec.Command("stty", "-F", "/dev/tty", "size").Output())
 	col := strings.Split(string(out), " ")[1]
@@ -28,13 +27,17 @@ func InitInput() {
 }
 
 func MoveCursor(dir string, amount int) {
-	dirChar := ""	
+	dirChar := ""
 
 	switch strings.ToLower(dir) {
-	case "up": dirChar = "A"
-	case "down": dirChar = "B"
-	case "left": dirChar = "D"
-	case "right": dirChar = "C"
+	case "up":
+		dirChar = "A"
+	case "down":
+		dirChar = "B"
+	case "left":
+		dirChar = "D"
+	case "right":
+		dirChar = "C"
 	}
 	fmt.Printf("\x1b[%d%s", amount, dirChar)
 }
@@ -61,8 +64,10 @@ func CalcInput() int {
 
 func HighlightOptions(position int, options []string) []string {
 	newOptions := make([]string, len(options))
-	if position < 0 || position >= len(newOptions) { return newOptions }
-	
+	if position < 0 || position >= len(newOptions) {
+		return newOptions
+	}
+
 	for i, el := range options {
 		newOptions[i] = el
 	}
@@ -118,25 +123,25 @@ func Container(left, right string) (string, int) {
 		for i, el := range rightArr {
 			if i >= len(leftArr) {
 				pad := strings.Repeat(" ", leftWidth)
-				out = append(out, pad + " " + el)
+				out = append(out, pad+" "+el)
 			} else {
-				out = append(out, leftArr[i] + " " + el)
-			} 
+				out = append(out, leftArr[i]+" "+el)
+			}
 		}
 	} else {
 		for i, el := range leftArr {
 			if i >= len(rightArr) {
 				out = append(out, el)
 			} else {
-				out = append(out, el + " " + rightArr[i])
-			} 
+				out = append(out, el+" "+rightArr[i])
+			}
 		}
 	}
 
 	return strings.Join(out, "\n"), max(leftHeight, rightHeight) + 1
 }
 
-func Box(text string, width ...int) string  {
+func Box(text string, width ...int) string {
 	tl := "╭"
 	tr := "╮"
 	bl := "╰"
@@ -168,7 +173,9 @@ func Box(text string, width ...int) string  {
 		var diff int
 		if d := maxWidth - utf8.RuneCountInString(seg); d < 0 {
 			diff = 0
-		} else { diff = d }
+		} else {
+			diff = d
+		}
 
 		for range diff {
 			r_pad += pad
@@ -193,7 +200,5 @@ func Box(text string, width ...int) string  {
 		bl, hLine, br,
 	)
 
-	return out 
+	return out
 }
-
-

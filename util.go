@@ -54,7 +54,9 @@ func Bold(text ...string) string {
 }
 
 func Unwrap[T any](val T, err error) T {
-	if err != nil { handleErr(err.Error()) }
+	if err != nil {
+		handleErr(err.Error())
+	}
 
 	return val
 }
@@ -85,5 +87,7 @@ func UnwrapOrElse[T any](val T, err error) func(func() T) T {
 }
 
 func Expect(err error) {
-	if err != nil { handleErr(err.Error()) }
+	if err != nil {
+		handleErr(err.Error())
+	}
 }
