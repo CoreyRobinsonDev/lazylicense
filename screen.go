@@ -50,6 +50,7 @@ func CalcInput() int {
 	if b[0] == 113 || b[0] == 81 {
 		// show cursor
 		fmt.Fprint(os.Stdout, "\x1b[?25h")
+		MoveCursor("up", 1)
 		os.Exit(0)
 	}
 	if string(b[0]) == "j" || string(b[0]) == "J" || b[2] == 66 {
